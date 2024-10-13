@@ -1,107 +1,132 @@
-// //Your code here
-// let URL = ('http://localhost:3000/films')
-//  const listHolder = document.getElementById('films') 
-//  document.addEventListener('DOMContentLoaded', ()=>{ 
-//      document.getElementsByClassName('film item')[0].remove() 
-//      fetchOne(URL); 
-//      fetchMovies(URL) 
-//  }) 
+
+//Your code here
+const API_URL = 'http://localhost:3000/films';
+const filmsList = document.getElementById('films');
+
+document.addEventListener('DOMContentLoaded', () => {
+  const placeholder = document.querySelector('.film.item');
+  if (placeholder) {
+    placeholder.remove();
+  }
+  loadFirstFilm(API_URL);
+  loadAllMovies(API_URL);
+
+
+});
+
+function loadFirstFilm(url) {
+  fetch(url)
+    .then(response => response.json())
+    .then(data => {
+      displayFilmDetails(data[0]);
+
+
+
+    });
+
+
+}
+
+
+
+
+function loadAllMovies(url) {
+  fetch(url)
+    .then(response => response.json())
+    .then(movies => {
+      movies.forEach(movie => {
+        showMovie(movie);
+      });
+    });
+}
+
+function showMovie(movie) {
+  const filmItem = document.createElement('li');
+  filmItem.style.cursor = "pointer";
+  filmItem.textContent = movie.title.toUpperCase();
+  filmsList.appendChild(filmItem);
   
-//  //
+  filmItem.addEventListener('click', () => {
+    fetchFilmDetails(movie.id);
 
-//  function fetchOne(URL){ 
-//      fetch(URL).then((response) => response.json()) 
-//      .then(data => { 
-//          setUpMovieDetails(data.films[0]); 
-//      }) 
-//  } 
-  
-  
-//  //
-
-
-//  function fetchMovies(URL){ 
-//      fetch(URL) 
-//      .then(resp => resp.json()) 
-//      .then(movies => { 
-//          movies.films.forEach(movie => { 
-//              displayMovie(movie) 
-//          }); 
-//      }) 
-//  } 
-//  //
-
-
-//  function displayMovie(movie){ 
-//      const list = document.createElement('li') 
-//      list.style.cursor="pointer" 
-//      list.textContent= (movie.title).toUpperCase()
-//      listHolder.appendChild(list) 
-//      addClickEvent() 
-//  } 
-
-//  //
-//  function addClickEvent(){ 
-//      let children=listHolder.children 
-//      for(let i=0; i<children.length; i++){ 
-//          let child=children[i] 
-//          // 
-
-//          child.addEventListener('click',() => { 
-//              fetch(`${URL}/${i+0}`) 
-//              .then(res => res.json()) 
-//              .then(movie => { 
-//                  document.getElementById('buy-ticket').textContent = 'Buy Ticket' 
-//                  setUpMovieDetails(movie) 
-//              }) 
-//          }) 
-//      } 
-//  } 
- 
-
-//  //
-
-//  function setUpMovieDetails(childMovie){ 
-//      const preview = document.getElementById('poster') 
-//      preview.src = childMovie.poster;
-//      const movieTitle = document.querySelector('#title'); 
-//      movieTitle.textContent = childMovie.title; 
-     
-     
-
-
-//      const movieTime = document.querySelector('#runtime'); 
-//      movieTime.textContent = `${childMovie.runtime} minutes`; 
-     
-
-
-//      const movieDescription = document.querySelector('#film-info'); 
-//      movieDescription.textContent = childMovie.description; 
-     
-
-
-//      const showTime = document.querySelector('#showtime') 
-//      showTime.textContent = childMovie.showtime; 
-     
-
-
-//      const tickets  = document.querySelector('#ticket-num') 
-//      tickets.textContent = childMovie.capacity -childMovie.tickets_sold; 
-//  } 
+  });
 
 
 
- 
-//  const btn = document.getElementById('buy-ticket') 
-//          btn.addEventListener('click', function(event){ 
-//              let remainingTickets = document.querySelector('#ticket-number').textContent 
-//              event.preventDefault() 
-//              if(remainingTickets > 0){ 
-//                  document.querySelector('#ticket-num').textContent 
-//              } 
-//              else if(parseInt(remTickets, 10)===0){ 
-//                  btn.textContent = 'Sold Out' 
-//              } 
- 
-            
-// })             
+
+}
+
+function fetchFilmDetails(movieId) {
+  fetch(`${API_URL}/${movieId}`)
+      .then(response => response.json())
+    .then(movie => {
+      document.getElementById('buy-ticket').textContent = 'Buy Ticket';
+      displayFilmDetails(movie);
+    });
+
+}
+
+function displayFilmDetails(selectedMovie) {
+  const posterElement = document.getElementById('poster');
+  posterElement.src = selectedMovie.poster;
+
+  document.querySelector('#title').textContent = selectedMovie.title;
+
+  document.querySelector('#runtime').textContent = `${selectedMovie.runtime}` (minutes);
+
+  document.querySelector('#film-info').textContent = selectedMovie.description;
+
+  document.querySelector('#showtime').textContent = selectedMovie.showtime;
+
+  const availableTickets = selectedMovie.capacity - selectedMovie.tickets_sold;
+  const ticketsElement = document.querySelector('#ticket-num');
+  ticketsElement.textContent = availableTickets;
+
+
+
+  const buyButton = document.getElementById('buy-ticket');
+  buyButton.removeEventListener('click', buyTicketHandler); 
+  if (availableTickets === 0) {
+    buyButton.textContent = 'Sold Out';
+  } else {
+    buyButton.addEventListener('click', () => buyTicketHandler(selectedMovie));
+  }
+}
+
+
+
+
+function buyTicketHandler(movie) {
+  const ticketsElement = document.querySelector('#ticket-num');
+  let remainingTickets = parseInt(ticketsElement.textContent, 10);
+
+  if (remainingTickets > 0) {
+    remainingTickets -= 1;
+    ticketsElement.textContent = remainingTickets;
+
+    const updatedTicketsSold = movie.tickets_sold + 1;
+  }
+}
+
+
+
+    fetch(`${API_URL}/${movie.id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ tickets_sold: updatedTicketsSold })
+    })
+      .then(response => response.json())
+      .then(updatedMovie => {
+        displayFilmDetails(updatedMovie);
+        if (remainingTickets === 0) {
+          document.getElementById('buy-ticket').textContent = 'Sold Out';
+        }
+      
+   else {
+    alert('Error, no more tickets available!');
+  }
+})
+
+
