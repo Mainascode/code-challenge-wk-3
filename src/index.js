@@ -93,7 +93,12 @@ function displayFilmDetails(selectedMovie) {
   }
 }
 
+const deleteButton = document.getElementById('button');
+deleteButton.textContent = 'Delete';
 
+deleteButton.addEventListener('click', () =>buyTicketHandler (selectedMovie))
+  
+  console.log('Delete button clicked!');
 
 
 function buyTicketHandler(movie) {
